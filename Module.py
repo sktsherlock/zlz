@@ -130,6 +130,7 @@ class HGNN_conv(nn.Module):
                + str(self.in_features) + ' -> ' \
                + str(self.out_features) + ')'
 
+
 # 定义一个图卷积网络模型，用于学习图上的节点表示
 class HGCN(nn.Module):
     def __init__(self, in_dim, hidden_list, dropout=0.5):
@@ -151,6 +152,7 @@ class HGCN(nn.Module):
 
         # 返回经过激活函数处理后的嵌入表示
         return x_embed_1
+
 
 # 对比学习框架下的图卷积网络模型
 class CL_HGCN(nn.Module):

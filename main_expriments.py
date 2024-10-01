@@ -131,6 +131,7 @@ def evaluate(true_one, true_zero, pre_one, pre_zero, i):
     # print(Metric.cv_mat_model_evaluate(eval_true_data, eval_pre_data))
     # 并将结果累加到metrics_tensor中
     metrics_tensor = metrics_tensor + Metric.cv_mat_model_evaluate(eval_true_data, eval_pre_data, i)
+    print(Metric.cv_mat_model_evaluate(eval_true_data, eval_pre_data, i))
 
     # 返回平均性能指标
     return metrics_tensor
