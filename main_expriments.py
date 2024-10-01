@@ -1,26 +1,21 @@
 import torch
 from prepareData import prepare_data
-#prepare_data函数，用于准备或预处理数据，以便后续的训练或测试过程
 import numpy as np
 from torch import optim
-#optim模块包含了多种优化算法，如SGD、Adam等，这些算法用于更新和计算影响模型性能的参数
 from param import parameter_parser
-#parameter_parser函数或类，用于解析命令行参数或配置文件中的参数，以便程序能够根据不同的参数配置运行。
 from Module import HGCLAMIR
-#HGCLAMIR的类，可能是一个自定义的神经网络模型或模块，用于特定的机器学习或深度学习任务
 from utils import get_L2reg, Myloss
-#utils模块通常包含一些辅助函数或类，如这里的get_L2reg可能用于计算L2正则化项，而Myloss可能是一个自定义的损失函数。
 from Calculate_Metrics import Metric_fun
-#Metric_fun函数或类用于计算评估指标（如准确率、召回率等）的函数或类。
 from trainData import Dataset
 import ConstructHW
+import wandb
 from matplotlib import pyplot
 
 # 忽略警告信息
 import warnings
 warnings.filterwarnings('ignore')
-# 根据是否有GPU，设置运行设备
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 
 # 定义训练一个epoch的函数
 def train_epoch(model, train_data, optim, opt):
@@ -82,6 +77,7 @@ def train_epoch(model, train_data, optim, opt):
     # 返回测试结果
     return true_value_one, true_value_zero, pre_value_one, pre_value_zero
 
+
 # 定义测试函数，评估模型性能
 def test(model, data, concat_mi_tensor, concat_dis_tensor, G_mi_Kn, G_mi_Km, G_dis_Kn, G_dis_Km):
     # 设置模型为评估模式，这样在前向传播时不会计算梯度
@@ -100,6 +96,7 @@ def test(model, data, concat_mi_tensor, concat_dis_tensor, G_mi_Kn, G_mi_Km, G_d
     pre_zero = score[test_zero_index]
     # 返回测试集上的真值和预测值
     return true_one, true_zero, pre_one, pre_zero
+
 
 # 定义评估函数evaluate，计算性能指标
 def evaluate(true_one, true_zero, pre_one, pre_zero, i):
@@ -138,6 +135,7 @@ def evaluate(true_one, true_zero, pre_one, pre_zero, i):
     # 返回平均性能指标
     return metrics_tensor
 
+
 # 主函数，控制整个训练和评估流程
 def main(opt):
     # 准备数据集
@@ -174,6 +172,7 @@ def main(opt):
         # metrics_cross用于累积性能指标
         metrics_cross = metrics_cross + metrics_value
         print('fold '+str(i)+' auc , aupr , f1_score , accuracy , recall , specificity , precision')
+        wandb.log({'metrics_cross': metrics_cross, 'metrics_value': metrics_value})
         print(metrics_value)
     # 完成所有样本的训练和评估后，计算平均性能指标
     # metrics_cross_avg是所有样本性能指标的平均值
@@ -186,9 +185,11 @@ def main(opt):
     print('All_metrics_avg:auc , aupr , f1_score , accuracy , recall , specificity , precision ')
     print(metrics_cross_avg)
 
+
 if __name__ == '__main__':
     # 解析命令行参数
     args = parameter_parser()
+    wandb.init(config=args, reinit=True)
     # 调用主函数
     main(args)
 
