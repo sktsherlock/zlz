@@ -110,7 +110,7 @@ def evaluate(true_one, true_zero, pre_one, pre_zero, i):
     # 创建一个布尔索引数组，用于找到true_zero中值为0的位置，即负样本
     test_index = np.array(np.where(true_zero == 0))
     # 设置随机种子以确保结果的可重复性
-    np.random.seed(seed)
+    np.random.seed(42)
     # 打乱索引数组，以实现随机抽样
     np.random.shuffle(test_index.T)
     # 选择前test_po_num个索引作为测试集的负样本索引
