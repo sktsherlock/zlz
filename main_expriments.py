@@ -110,7 +110,7 @@ def evaluate(true_one, true_zero, pre_one, pre_zero, i):
     # 创建一个布尔索引数组，用于找到true_zero中值为0的位置，即负样本
     test_index = np.array(np.where(true_zero == 0))
     # 设置随机种子以确保结果的可重复性
-    # np.random.seed(seed)
+    np.random.seed(seed)
     # 打乱索引数组，以实现随机抽样
     np.random.shuffle(test_index.T)
     # 选择前test_po_num个索引作为测试集的负样本索引
@@ -126,10 +126,6 @@ def evaluate(true_one, true_zero, pre_one, pre_zero, i):
     # 将预测的正样本和负样本合并为一个数组
     eval_pre_data = torch.cat([pre_one, eval_pre_zero])
 
-    # 使用Metric对象的cv_mat_model_evaluate方法计算性能指标
-    # print('  epcho '+str(seed)+' auc, aupr, f1_score, accuracy, recall, specificity, precision ')
-    # print(Metric.cv_mat_model_evaluate(eval_true_data, eval_pre_data))
-    # 并将结果累加到metrics_tensor中
     metrics_tensor = metrics_tensor + Metric.cv_mat_model_evaluate(eval_true_data, eval_pre_data, i)
     print(Metric.cv_mat_model_evaluate(eval_true_data, eval_pre_data, i))
 
@@ -147,41 +143,19 @@ def main(opt):
     metrics_cross = np.zeros((1, 7))
     # 遍历验证集的每一个样本
     for i in range(opt.validation):
-        # 初始化模型和优化器
-        # hidden_list: 定义模型隐藏层的大小列表
-        hidden_list = [256, 256]  # 这里定义了两层隐藏层，每层大小为256
-        # num_proj_hidden: 定义投影层隐藏层的大小
+        hidden_list = [256, 256]
         num_proj_hidden = 64
-
-        # 创建模型实例，这里假设HGCLAMIR是一个已经定义好的模型类
-        # args.mi_num, args.dis_num, args是模型需要的一些参数
         model = HGCLAMIR(args.pi_num, args.dis_num, hidden_list, num_proj_hidden, args)
-        # 将模型移动到指定的设备（如GPU）上
         model.to(device)
-        # 训练模型并获取测试结果
-        # optimizer: 定义优化器，这里使用的是Adam优化器
-        optimizer = optim.Adam(model.parameters(), lr=0.001)  # 学习率设置为0.0001
-        # train_epoch是一个函数，用于训练模型一个epoch并返回一些指标
-        # train_data[i]是当前样本的数据
-        # opt是包含其他配置选项的对象
+        optimizer = optim.Adam(model.parameters(), lr=0.001)
         true_score_one, true_score_zero, pre_score_one, pre_score_zero = train_epoch(
             model, train_data[i], optimizer, opt
         )
-        # 计算性能指标并累加
-        # evaluate是一个函数，用于根据模型输出和真实标签计算性能指标
         metrics_value = evaluate(true_score_one, true_score_zero, pre_score_one, pre_score_zero, i)
-        # metrics_cross用于累积性能指标
         metrics_cross = metrics_cross + metrics_value
         print('fold '+str(i)+' auc , aupr , f1_score , accuracy , recall , specificity , precision')
-        wandb.log({'metrics_cross': metrics_cross, 'metrics_value': metrics_value})
         print(metrics_value)
-    # 完成所有样本的训练和评估后，计算平均性能指标
-    # metrics_cross_avg是所有样本性能指标的平均值
     metrics_cross_avg = metrics_cross / 5
-    # np.savetxt(f'result/avg_x_ROC.txt', metrics_cross_avg[0][7])
-    # np.savetxt(f'result/avg_y_ROC.txt', metrics_cross_avg[0][8])
-    # np.savetxt(f'result/avg_x_PR.txt', metrics_cross_avg[0][9])
-    # np.savetxt(f'result/avg_y_PR.txt', metrics_cross_avg[0][10])
     # 打印平均性能指标的结果
     print('All_metrics_avg:auc , aupr , f1_score , accuracy , recall , specificity , precision ')
     print(metrics_cross_avg)
@@ -191,6 +165,5 @@ if __name__ == '__main__':
     # 解析命令行参数
     args = parameter_parser()
     wandb.init(config=args, reinit=True)
-    # 调用主函数
     main(args)
 
